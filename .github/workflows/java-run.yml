@@ -1,0 +1,32 @@
+name: Run Java Assessment Files
+
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Compile Task1
+      run: javac Task1.java
+
+    - name: Compile Task2
+      run: javac Task2.java
+
+    - name: Compile Task3
+      run: javac Task3.java
+
+    - name: Compile Task4
+      run: javac Task4.java
+
+    - name: Compile Task5
+      run: javac Task5.java
