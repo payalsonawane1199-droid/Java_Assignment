@@ -1,39 +1,60 @@
-public ValidationResult validate(Document doc) {
-    try {
-        if (doc == null) {
-            // FIX: use IllegalArgumentException for expected validation failure instead of generic RuntimeException
-            throw new IllegalArgumentException("Document is null");
-        }
-        String content = doc.extractContent();
-        if (content == null || content.isEmpty()) {
-            // FIX: treat empty content as expected validation failure and also handle null content safely
-            throw new IllegalArgumentException("Empty content");
-        }
-        return runValidationRules(content);
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    } catch (IllegalArgumentException e) {
-        // FIX: avoid printStackTrace for expected validation failures; log concise warning instead
-        logger.warn("Validation failed: {}", e.getMessage());
-        return ValidationResult.invalid(e.getMessage());
+public class DocumentValidator {
 
-    } catch (Exception e) {
-        // FIX: do not return null on unexpected errors; log full error and return invalid result
-        logger.error("Unexpected validation error", e);
-        return ValidationResult.invalid("Unexpected validation error");
-    }
-}
+    private static final Logger logger = LoggerFactory.getLogger(DocumentValidator.class);
 
-public void validateBatch(List<Document> docs) {
-    for (Document doc : docs) {
+    public ValidationResult validate(Document doc) {
         try {
-            ValidationResult r = validate(doc);
-            // FIX: guard against invalid/null results before calling isValid to avoid silent batch failures
-            if (r != null && r.isValid()) {
-                saveResult(r);
+            if (doc == null) {
+                // FIX: handle expected validation failure safely
+                logger.warn("Document is null");
+                return new ValidationResult(false);
             }
+
+            String content = doc.extractContent();
+
+            if (content == null || content.isEmpty()) {
+                // FIX: handle validation case instead of throwing exception
+                logger.warn("Empty content");
+                return new ValidationResult(false);
+            }
+
+            return runValidationRules(content);
+
         } catch (Exception e) {
-            // FIX: do not swallow batch exceptions; log them so real processing issues are traceable
-            logger.error("Batch validation failed for document", e);
+            // FIX: proper logging instead of printStackTrace
+            logger.error("Unexpected error during validation", e);
+
+            // FIX: avoid null return
+            return new ValidationResult(false);
         }
+    }
+
+    public void validateBatch(List<Document> docs) {
+        for (Document doc : docs) {
+            try {
+                ValidationResult r = validate(doc);
+
+                // FIX: null safety check
+                if (r != null && r.isValid()) {
+                    saveResult(r);
+                }
+
+            } catch (Exception e) {
+                // FIX: do not swallow exception
+                logger.error("Error in batch validation", e);
+            }
+        }
+    }
+
+    
+    private ValidationResult runValidationRules(String content) {
+        return new ValidationResult(true);
+    }
+
+    private void saveResult(ValidationResult r) {
     }
 }
